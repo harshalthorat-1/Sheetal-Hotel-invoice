@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotel Invoice</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@700&display=swap');
+
+        :root {
+            --border-color: #000000;
+            --bg-color: #e5e7eb;
+            --accent-hover: #f3f4f6;
+            --text-main: #111827;
+            --text-muted: #4b5563;
+        }
+
+        /* Page & Centering Setup */
+        body {
+            margin: 0;
+            padding: 40px 20px;
+            background-color: var(--bg-color);
+            font-family: 'Inter', Arial, sans-serif;
+            color: var(--text-main);
+            font-size: 13px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        /* A4 Container */
+        .invoice-container {
+            width: 210mm;
+            min-height: 297mm;
+            background: #fff;
+            padding: 15mm;
+            box-sizing: border-box;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+            border: 1px solid #d1d5db;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Typography & Alignment */
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .text-left { text-align: left; }
+        .bold { font-weight: 700; }
+        .medium { font-weight: 600; }
+        
+        h1, h2, h3, p { margin: 0; padding: 0; }
+
+        /* Editable Elements & Inputs */
+        .editable {
+            border: 1px dashed transparent;
+            outline: none;
+            transition: all 0.2s;
+            border-radius: 3px;
+            padding: 2px 4px;
+            display: inline-block;
+        }
+        .editable:hover, .editable:focus {
+            background-color: var(--accent-hover);
+            border-color: #9ca3af;
+        }
+
+        input, textarea {
+            font-family: inherit;
+            font-size: inherit;
+            color: inherit;
+            border: 1px dashed transparent;
+            background: transparent;
+            outline: none;
+            width: 100%;
+            box-sizing: border-box;
+            padding: 4px;
+        }
+        input:hover, input:focus, textarea:hover, textarea:focus {
+            background-color: var(--accent-hover);
+            border-color: #9ca3af;
+        }
+
+        /* Header Section */
+        .header {
+            text-align: center;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .header-top {
+            display: none; /* Hidden by default on screen */
+        }
+        .tax-invoice-badge {
+            display: inline-block;
+            border: 1px solid var(--border-color);
+            padding: 4px 20px;
+            font-weight: 700;
+            font-size: 12px;
+            letter-spacing: 1.5px;
+            margin-bottom: 15px;
+            border-radius: 20px;
+            text-transform: uppercase;
+        }
+        .print-invoice-label {
+            display: none; /* Hidden on screen */
+        }
+        .hotel-name {
+            font-family: 'Merriweather', serif;
+            font-size: 28px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            color: #000;
+        }
+        .hotel-address {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            max-width: 80%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .hotel-contact {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        /* Meta Section (Invoice No & Date) */
+        .meta-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        .meta-item { display: flex; align-items: center; gap: 8px; }
+        .meta-item:last-child { justify-content: flex-end; }
+        .meta-item input { width: 140px; border-bottom: 1px solid var(--border-color); border-radius: 0; padding: 2px 5px; font-weight: 600; }
+
+        /* Customer Section Grid */
+        .customer-section {
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 30px;
+        }
+        .customer-details { display: flex; flex-direction: column; }
+        .customer-details textarea {
+            width: 100%;
+            height: 60px;
+            resize: none;
+            border-bottom: 1px solid var(--border-color);
+            border-radius: 0;
+            margin-top: 5px;
+            font-weight: 500;
+            padding: 5px 0;
+        }
+
+        /* Boxed GST Input */
+        .gst-section { display: flex; flex-direction: column; align-items: flex-end; }
+        .gst-wrapper {
+            display: flex;
+            gap: 2px;
+            margin-top: 10px;
+            position: relative;
+            cursor: text;
+        }
+        
+        /* Highlight the boxes when the hidden input is focused */
+        .gst-wrapper:focus-within .gst-box {
+            border-color: #3b82f6;
+            background-color: var(--accent-hover);
+        }
+
+        .gst-box {
+            width: 20px;
+            height: 28px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 16px;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: all 0.2s ease;
+        }
+        
+        #real-gst {
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0; 
+            width: 100%; height: 100%;
+            /* Make the input visible to browsers but transparent visually */
+            opacity: 1; 
+            color: transparent; 
+            background: transparent;
+            border: none;
+            outline: none;
+            caret-color: transparent; /* Hides cursor to avoid weird visual overlap */
+            z-index: 10; 
+            cursor: text;
+            text-transform: uppercase;
+        }
+
+        /* Table Structure */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            border: 2px solid var(--border-color);
+        }
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 6px 8px;
+            vertical-align: middle;
+        }
+        th {
+            background-color: #000;
+            color: #fff;
+            font-weight: 600;
+            font-size: 12px;
+            line-height: 1.4;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        th small {
+            font-size: 10px;
+            font-weight: 400;
+            opacity: 0.8;
+            text-transform: none;
+        }
+        td input { padding: 4px; font-size: 13px; }
+        .sr-no { font-weight: 600; text-align: center; }
+        
+        /* Adjusted Column Widths for precise alignment */
+        .col-sr { width: 4%; }
+        .col-checkin { width: 14%; }
+        .col-checkout { width: 14%; }
+        .col-days { width: 6%; }
+        .col-room { width: 8%; }
+        .col-desc { width: 28%; }
+        .col-rate { width: 12%; }
+        .col-amt { width: 14%; }
+        .col-action { width: 4%; } /* Action excluded in print */
+
+        /* Actions */
+        .btn-add, .btn-remove {
+            background: #222;
+            color: #fff;
+            border: none;
+            padding: 6px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .btn-remove { background: #e74c3c; padding: 4px 8px; }
+        .btn-add:hover { background: #444; }
+        .btn-remove:hover { background: #c0392b; }
+        .action-row { margin-bottom: 20px; }
+
+        /* Totals Section */
+        .totals-wrapper {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+        .totals-table {
+            width: 350px;
+            border: 2px solid var(--border-color);
+            margin: 0;
+            background: #fafafa;
+        }
+        .totals-table td {
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+        .totals-table tr td:first-child {
+            font-weight: 600;
+        }
+        .totals-table tr.grand-total-row td {
+            border-top: 2px solid var(--border-color);
+            font-weight: 700;
+            font-size: 16px;
+            background: #f3f4f6;
+        }
+
+        /* Amount in words */
+        .amount-words-section {
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            background: #fafafa;
+            font-size: 14px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .amount-words-section .bold {
+            white-space: nowrap;
+        }
+
+        /* Footer Section */
+        .footer {
+            margin-top: auto; /* Pushes to bottom on screen */
+            padding-top: 40px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            border-top: 2px solid var(--border-color);
+        }
+        .footer-left p { margin-bottom: 8px; font-size: 13px; }
+        .signature-box {
+            text-align: center;
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .signature-line {
+            width: 200px;
+            border-top: 1px solid var(--border-color);
+            margin: 40px 0 8px 0;
+        }
+
+        /* Floating Action Buttons */
+        .print-btn-container {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .action-btn {
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 14px;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0, 0.2);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            justify-content: center;
+        }
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0, 0.3);
+        }
+        .btn-print { background: #2563eb; }
+        .btn-export { background: #10b981; }
+        .btn-import { background: #8b5cf6; }
+        .btn-clear { background: #ef4444; }
+
+        /* FIX PRINT LAYOUT COMPLETELY */
+        @media print {
+            @page {
+                size: A4;
+                margin: 10mm;
+            }
+            
+            html, body { 
+                background: #fff; 
+                padding: 0; 
+                margin: 0;
+                min-height: auto; 
+                display: block;
+            }
+
+            .invoice-container { 
+                box-shadow: none; 
+                border: none; 
+                margin: 0; 
+                padding: 0; 
+                width: 100%;
+                height: auto;
+                page-break-after: avoid; 
+                padding-bottom: 10px; 
+            }
+
+            .no-print { display: none !important; }
+            
+            /* Print-specific header fixes using Flexbox */
+            .tax-invoice-badge { display: none !important; }
+            
+            .header-top {
+                display: flex !important;
+                justify-content: flex-end;
+                align-items: center;
+                margin-bottom: 5px;
+            }
+            .print-invoice-label {
+                display: block !important;
+                font-weight: bold;
+                font-size: 14px;
+                letter-spacing: 1px;
+            }
+
+            /* Remove input formatting for print */
+            .editable, input, textarea {
+                border: none !important;
+                background: transparent !important;
+                resize: none;
+                padding: 0 !important;
+            }
+            .editable { display: inline; }
+            .meta-item input { border-bottom: 1px solid #000 !important; }
+            .customer-details textarea { border-bottom: 1px solid #000 !important; }
+            
+            /* Keep table together */
+            table { 
+                border: 2px solid var(--border-color) !important; 
+                width: 100% !important; 
+                page-break-inside: avoid;
+            }
+            th, td { border: 1px solid var(--border-color) !important; }
+            
+            .totals-table { border: 2px solid var(--border-color) !important; }
+            
+            /* Tighter Spacing to fit 1 page */
+            .amount-words-section {
+                margin-bottom: 10px;
+            }
+
+            /* IMPORTANT: KEEP FOOTER ON SAME PAGE */
+            .footer {
+                margin-top: 15px !important; 
+                padding-top: 15px !important;
+                page-break-inside: avoid;
+                page-break-before: avoid;
+            }
+            /* REMOVE DATE ICON IN PRINT */
+        @media print {
+
+        input[type="date"] {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+
+            background: none !important;
+            padding-right: 0 !important;
+        }
+
+        /* Hide calendar icon (Chrome, Edge) */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            display: none !important;
+            -webkit-appearance: none;
+        }
+
+        }
+
+            /* Ensure colors print correctly */
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            th { background-color: #000 !important; color: #fff !important; }
+            .amount-words-section, .totals-table { background: #fff !important; border: 1px solid #000 !important; }
+            .totals-table tr.grand-total-row td { background: #fff !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="print-btn-container no-print">
+        <input type="file" id="import-file" accept=".json" style="display: none;">
+
+        <button class="action-btn btn-clear" onclick="clearData()">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            New Bill (Clear)
+        </button>
+        
+        <button class="action-btn btn-import" onclick="document.getElementById('import-file').click()">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+            Import JSON
+        </button>
+
+        <button class="action-btn btn-export" onclick="exportJSON()">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            Export JSON
+        </button>
+
+        <button class="action-btn btn-print" onclick="window.print()">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+            Print PDF
+        </button>
+    </div>
+
+    <div class="invoice-container">
+        
+        <!-- Header -->
+        <div class="header">
+            <div class="header-top">
+                <div class="print-invoice-label">INVOICE</div>
+            </div>
+            <div class="tax-invoice-badge">TAX INVOICE / CASH MEMO</div>
+            <h1 class="hotel-name editable" id="hotel-name" contenteditable="true">ROYAL INN Lodging & Boarding</h1>
+            <p class="hotel-address editable" contenteditable="true">S. NO 114, VADGAON URSE PHATA , OLD MUMBAI-PUNE ROAD , TALEGAON DHABHADE, DIST.PUNE 412 106</p>
+            <p class="hotel-contact editable" contenteditable="true">Tel: 9850415550/7507749665 | Email: sheetalhotel@email.com</p>
+        </div>
+
+        <!-- Meta (Invoice No & Date) -->
+        <div class="meta-section">
+            <div class="meta-item text-left">
+                <span class="bold">Invoice No:</span>
+                <input type="text" id="invoice-no" value="INV-0001" class="text-left">
+            </div>
+            <div class="meta-item">
+                <span class="bold">Date:</span>
+                <input type="date" id="invoice-date" class="text-right">
+            </div>
+        </div>
+
+        <!-- Customer Section -->
+        <div class="customer-section">
+            <div class="customer-details">
+                <span class="bold">To (Customer Name & Address):</span>
+                <textarea placeholder="Enter Customer Name and Address..."></textarea>
+            </div>
+            <div class="gst-section">
+                <span class="bold" style="align-self: flex-end;">Customer GSTIN:</span>
+                <div class="gst-wrapper">
+                    <!-- 15 spans for GST styling -->
+                    <div id="gst-display-boxes" style="display: flex; gap: 2px;">
+                        <span class="gst-box"></span><span class="gst-box"></span><span class="gst-box"></span>
+                        <span class="gst-box"></span><span class="gst-box"></span><span class="gst-box"></span>
+                        <span class="gst-box"></span><span class="gst-box"></span><span class="gst-box"></span>
+                        <span class="gst-box"></span><span class="gst-box"></span><span class="gst-box"></span>
+                        <span class="gst-box"></span><span class="gst-box"></span><span class="gst-box"></span>
+                    </div>
+                    <!-- Fully visible transparent input to properly handle selection/cursor -->
+                    <input type="text" id="real-gst" maxlength="15" autocomplete="off">
+                </div>
+            </div>
+        </div>
+
+        <!-- Items Table -->
+        <table id="invoice-table">
+            <thead>
+                <tr>
+                    <th class="col-sr text-center">#</th>
+                    <th class="col-checkin text-center">Check-In<br>
+                    <th class="col-checkout text-center">Check-Out<br>
+                    <th class="col-days text-center">Days</th>
+                    <th class="col-room text-center">Room<br>No.</th>
+                    <th class="col-desc text-left">Particulars</th>
+                    <th class="col-rate text-center">Rate/Day<br><small>(Rs.)</small></th>
+                    <th class="col-amt text-center">Amount<br><small>(Rs.)</small></th>
+                    <th class="col-action no-print"></th>
+                </tr>
+            </thead>
+            <tbody id="items-tbody">
+                <!-- Rows injected via JS -->
+            </tbody>
+        </table>
+
+        <!-- Add Row Button -->
+        <div class="action-row no-print">
+            <button class="btn-add" onclick="addRow()">+ Add New Row</button>
+        </div>
+
+        <!-- Totals Calculation -->
+        <div class="totals-wrapper">
+            <table class="totals-table">
+                <tr>
+                    <td>Total Amount</td>
+                    <td class="text-right">Rs. <span id="total-amount">0.00</span></td>
+                </tr>
+                <tr>
+                    <td>CGST (<input type="number" id="cgst-rate" value="6" style="width: 40px; display: inline-block; padding: 0; text-align: center; border-bottom: 1px solid #ccc; border-radius: 0; font-weight: bold;" oninput="document.getElementById('sgst-rate').value = this.value; calculateTotals()">%)</td>
+                    <td class="text-right">Rs. <span id="cgst-amount">0.00</span></td>
+                </tr>
+                <tr>
+                    <td>SGST (<input type="number" id="sgst-rate" value="6" style="width: 40px; display: inline-block; padding: 0; text-align: center; border-bottom: 1px solid #ccc; border-radius: 0; font-weight: bold;" oninput="document.getElementById('cgst-rate').value = this.value; calculateTotals()">%)</td>
+                    <td class="text-right">Rs. <span id="sgst-amount">0.00</span></td>
+                </tr>
+                <tr class="grand-total-row">
+                    <td>Grand Total</td>
+                    <td class="text-right">Rs. <span id="grand-total">0.00</span></td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Amount in Words -->
+        <div class="amount-words-section">
+            <span class="bold">Amount in Words: </span>
+            <span id="amount-words" style="font-style: italic; font-weight: 500;">Zero Rupees Only</span>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-left">
+                <p><span class="bold">Hotel PAN No:</span> <span class="editable" contenteditable="true">BWPPK9581E</span></p>
+                <p><span class="bold">Hotel GSTIN:</span> <span class="editable" contenteditable="true">27BWPPK9581E3ZU</span></p>
+                <div class="signature-box" style="align-items: flex-start;">
+                    <div class="signature-line" style="width: 150px; margin-left: 0;"></div>
+                    <span class="bold" style="font-size: 13px;">Received By / Cashier</span>
+                </div>
+            </div>
+            
+            <div class="footer-right" style="display: flex; justify-content: flex-end;">
+                <div class="signature-box">
+                    <div class="bold" style="margin-bottom: 40px; font-size: 13px;">For <span id="for-hotel-name">ROYAL INN Lodging & Boarding</span></div>
+                    <div class="signature-line"></div>
+                    <span class="bold" style="font-size: 13px;">Authorized Signatory</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check for saved data in LocalStorage
+            const savedData = localStorage.getItem('hotelInvoiceDraft');
+            
+            if (savedData) {
+                try {
+                    restoreData(JSON.parse(savedData));
+                } catch(err) {
+                    console.error("Failed to parse local storage data", err);
+                    initDefaults();
+                }
+            } else {
+                initDefaults();
+            }
+
+            // Sync Hotel Name to Footer
+            const hotelNameEl = document.getElementById('hotel-name');
+            const forHotelEl = document.getElementById('for-hotel-name');
+            hotelNameEl.addEventListener('input', () => {
+                forHotelEl.innerText = hotelNameEl.innerText;
+            });
+
+            // Boxed GST Logic
+            const realGst = document.getElementById('real-gst');
+            const gstBoxes = document.querySelectorAll('.gst-box');
+            realGst.addEventListener('input', (e) => {
+                // Get the value natively without forcing it back onto the input
+                // This stops the cursor from jumping to the end and blocking editing.
+                const val = e.target.value.toUpperCase(); 
+                gstBoxes.forEach((box, i) => {
+                    box.textContent = val[i] || '';
+                });
+            });
+
+            // Setup JSON Import Listener
+            document.getElementById('import-file').addEventListener('change', handleImportJSON);
+
+            // Listen to all inputs to save data automatically
+            document.addEventListener('input', saveData);
+        });
+
+        function initDefaults() {
+            document.getElementById('invoice-date').valueAsDate = new Date();
+            document.getElementById('invoice-no').value = 'INV-' + Math.floor(Math.random() * 90000 + 10000);
+            addRow(true);
+        }
+
+        function updateSerialNumbers() {
+            const rows = document.querySelectorAll('#items-tbody tr');
+            rows.forEach((row, index) => {
+                row.querySelector('.sr-no').innerText = index + 1;
+            });
+        }
+
+        function addRow(isFirst = false) {
+            const tbody = document.getElementById('items-tbody');
+            const tr = document.createElement('tr');
+            
+            // Set default text for first row
+            const defaultDesc = isFirst ? "Room Accommodation" : "";
+
+            tr.innerHTML = `
+                <td class="sr-no">1</td>
+                <td><input type="date" class="item-checkin text-center" onchange="calculateRow(this)"></td>
+                <td><input type="date" class="item-checkout text-center" onchange="calculateRow(this)"></td>
+                <td><input type="number" min="1" class="item-days text-center bold" placeholder="1" value="1" oninput="calculateRow(this)"></td>
+                <td><input type="text" class="item-room text-center bold" placeholder="Room No"></td>
+                <td><input type="text" class="item-desc text-left" placeholder="Particulars..." value="${defaultDesc}"></td>
+                <td><input type="number" step="0.01" class="item-rate text-right medium" placeholder="0.00" oninput="calculateRow(this)"></td>
+                <td><input type="number" step="0.01" class="item-amount text-right bold" placeholder="0.00" oninput="calculateTotals()" readonly></td>
+                <td class="no-print text-center"><button type="button" class="btn-remove" onclick="removeRow(this)">X</button></td>
+            `;
+            tbody.appendChild(tr);
+            
+            updateSerialNumbers();
+            
+            // Default dates based on invoice date or today
+            const invDateVal = document.getElementById('invoice-date').value || new Date().toISOString().split('T')[0];
+            const checkinDate = new Date(invDateVal);
+            const checkoutDate = new Date(checkinDate);
+            checkoutDate.setDate(checkoutDate.getDate() + 1); // Defaults to next day
+            
+            tr.querySelector('.item-checkin').value = checkinDate.toISOString().split('T')[0];
+            tr.querySelector('.item-checkout').value = checkoutDate.toISOString().split('T')[0];
+            
+            saveData();
+        }
+
+        function addImportedRow(data) {
+            const tbody = document.getElementById('items-tbody');
+            const tr = document.createElement('tr');
+            
+            tr.innerHTML = `
+                <td class="sr-no">1</td>
+                <td><input type="date" class="item-checkin text-center" onchange="calculateRow(this)" value="${data.checkin || ''}"></td>
+                <td><input type="date" class="item-checkout text-center" onchange="calculateRow(this)" value="${data.checkout || ''}"></td>
+                <td><input type="number" min="1" class="item-days text-center bold" placeholder="1" value="${data.days || '1'}" oninput="calculateRow(this)"></td>
+                <td><input type="text" class="item-room text-center bold" placeholder="Room No" value="${data.room || ''}"></td>
+                <td><input type="text" class="item-desc text-left" placeholder="Particulars..." value="${data.desc || ''}"></td>
+                <td><input type="number" step="0.01" class="item-rate text-right medium" placeholder="0.00" oninput="calculateRow(this)" value="${data.rate || ''}"></td>
+                <td><input type="number" step="0.01" class="item-amount text-right bold" placeholder="0.00" oninput="calculateTotals()" value="${data.amount || ''}" readonly></td>
+                <td class="no-print text-center"><button type="button" class="btn-remove" onclick="removeRow(this)">X</button></td>
+            `;
+            tbody.appendChild(tr);
+            updateSerialNumbers();
+        }
+
+        function removeRow(btn) {
+            const tr = btn.closest('tr');
+            tr.remove();
+            updateSerialNumbers();
+            calculateTotals();
+            saveData();
+        }
+
+        function calculateRow(element) {
+            const row = element.closest('tr');
+            
+            // If a date was changed, try to recalculate days
+            if (element.classList.contains('item-checkin') || element.classList.contains('item-checkout')) {
+                const checkin = row.querySelector('.item-checkin').value;
+                const checkout = row.querySelector('.item-checkout').value;
+                if (checkin && checkout) {
+                    const date1 = new Date(checkin);
+                    const date2 = new Date(checkout);
+                    if (date2 >= date1) {
+                        let diffDays = Math.ceil((date2 - date1) / (1000 * 60 * 60 * 24));
+                        if (diffDays === 0) diffDays = 1; // Minimum 1 day for same-day checkout
+                        row.querySelector('.item-days').value = diffDays;
+                    }
+                }
+            }
+            
+            // Calculate amount: Days * Rate
+            const days = parseFloat(row.querySelector('.item-days').value) || 0;
+            const rate = parseFloat(row.querySelector('.item-rate').value) || 0;
+            
+            // Only update amount if there's a rate inputted
+            if (rate >= 0) {
+                row.querySelector('.item-amount').value = (days * rate).toFixed(2);
+            }
+            
+            calculateTotals();
+        }
+
+        function formatCurrency(num) {
+            return parseFloat(num).toLocaleString('en-IN', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function calculateTotals() {
+            let total = 0;
+            const rows = document.querySelectorAll('#items-tbody tr');
+            
+            rows.forEach(row => {
+                const amtInput = row.querySelector('.item-amount');
+                let amt = parseFloat(amtInput.value) || 0;
+                total += amt;
+            });
+
+            document.getElementById('total-amount').innerText = formatCurrency(total);
+            
+            // Get dynamic GST rates
+            const cgstRate = parseFloat(document.getElementById('cgst-rate').value) || 0;
+            const sgstRate = parseFloat(document.getElementById('sgst-rate').value) || 0;
+
+            const cgst = total * (cgstRate / 100);
+            const sgst = total * (sgstRate / 100);
+            
+            document.getElementById('cgst-amount').innerText = formatCurrency(cgst);
+            document.getElementById('sgst-amount').innerText = formatCurrency(sgst);
+
+            // Standard practice is to round the final bill amount
+            const grandTotal = Math.round(total + cgst + sgst);
+            document.getElementById('grand-total').innerText = formatCurrency(grandTotal);
+
+            // Update words
+            document.getElementById('amount-words').innerText = numberToWords(grandTotal);
+        }
+
+        // Indian Numbering System to Words
+        function numberToWords(num) {
+            if (num === 0) return "Zero Rupees Only";
+            
+            const a = ['', 'One ', 'Two ', 'Three ', 'Four ', 'Five ', 'Six ', 'Seven ', 'Eight ', 'Nine ', 'Ten ', 'Eleven ', 'Twelve ', 'Thirteen ', 'Fourteen ', 'Fifteen ', 'Sixteen ', 'Seventeen ', 'Eighteen ', 'Nineteen '];
+            const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+            const format = (n) => {
+                let str = '';
+                if (n > 99) {
+                    str += a[Math.floor(n / 100)] + 'Hundred ';
+                    n = n % 100;
+                }
+                if (n > 19) {
+                    str += b[Math.floor(n / 10)] + ' ';
+                    n = n % 10;
+                }
+                if (n > 0) {
+                    str += a[n];
+                }
+                return str;
+            };
+
+            let words = '';
+            let crore = Math.floor(num / 10000000);
+            num %= 10000000;
+            let lakh = Math.floor(num / 100000);
+            num %= 100000;
+            let thousand = Math.floor(num / 1000);
+            num %= 1000;
+            let remainder = num;
+
+            if (crore > 0) words += format(crore) + 'Crore ';
+            if (lakh > 0) words += format(lakh) + 'Lakh ';
+            if (thousand > 0) words += format(thousand) + 'Thousand ';
+            if (remainder > 0) {
+                if (words !== '') words += 'and ';
+                words += format(remainder);
+            }
+
+            return words.trim() + " Rupees Only";
+        }
+
+        function getInvoiceData() {
+            const data = {
+                hotelName: document.getElementById('hotel-name').innerText,
+                hotelAddress: document.querySelector('.hotel-address').innerText,
+                hotelContact: document.querySelector('.hotel-contact').innerText,
+                invoiceNo: document.getElementById('invoice-no').value,
+                invoiceDate: document.getElementById('invoice-date').value,
+                customerName: document.querySelector('.customer-details textarea').value,
+                customerGst: document.getElementById('real-gst').value.toUpperCase(), // Save as uppercase
+                cgstRate: document.getElementById('cgst-rate').value,
+                sgstRate: document.getElementById('sgst-rate').value,
+                hotelPan: document.querySelectorAll('.footer-left .editable')[0].innerText,
+                hotelGst: document.querySelectorAll('.footer-left .editable')[1].innerText,
+                items: []
+            };
+
+            document.querySelectorAll('#items-tbody tr').forEach(row => {
+                data.items.push({
+                    checkin: row.querySelector('.item-checkin').value,
+                    checkout: row.querySelector('.item-checkout').value,
+                    days: row.querySelector('.item-days').value,
+                    room: row.querySelector('.item-room').value,
+                    desc: row.querySelector('.item-desc').value,
+                    rate: row.querySelector('.item-rate').value,
+                    amount: row.querySelector('.item-amount').value
+                });
+            });
+
+            return data;
+        }
+
+        function restoreData(data) {
+            // Restore basic fields
+            document.getElementById('hotel-name').innerText = data.hotelName || '';
+            document.querySelector('.hotel-address').innerText = data.hotelAddress || '';
+            document.querySelector('.hotel-contact').innerText = data.hotelContact || '';
+            document.getElementById('invoice-no').value = data.invoiceNo || '';
+            document.getElementById('invoice-date').value = data.invoiceDate || '';
+            document.querySelector('.customer-details textarea').value = data.customerName || '';
+            
+            // Restore GST Input & trigger visuals
+            const gstInput = document.getElementById('real-gst');
+            gstInput.value = data.customerGst || '';
+            gstInput.dispatchEvent(new Event('input')); 
+
+            // Restore Rates
+            document.getElementById('cgst-rate').value = data.cgstRate || '6';
+            document.getElementById('sgst-rate').value = data.sgstRate || '6';
+            
+            // Restore Footer
+            document.querySelectorAll('.footer-left .editable')[0].innerText = data.hotelPan || '';
+            document.querySelectorAll('.footer-left .editable')[1].innerText = data.hotelGst || '';
+            document.getElementById('for-hotel-name').innerText = data.hotelName || '';
+
+            // Restore Items Table
+            const tbody = document.getElementById('items-tbody');
+            tbody.innerHTML = ''; // Clear current rows
+            
+            if (data.items && data.items.length > 0) {
+                data.items.forEach(item => {
+                    addImportedRow(item);
+                });
+            } else {
+                addRow(true); // Fallback to 1 empty row
+            }
+            
+            calculateTotals();
+        }
+
+        // Save data to LocalStorage
+        function saveData() {
+            const data = getInvoiceData();
+            localStorage.setItem('hotelInvoiceDraft', JSON.stringify(data));
+        }
+
+        // Clear LocalStorage data
+        function clearData() {
+            if(confirm("Are you sure you want to clear this invoice and start a new one?")) {
+                localStorage.removeItem('hotelInvoiceDraft');
+                location.reload();
+            }
+        }
+
+        // Export data to JSON file
+        function exportJSON() {
+            const data = getInvoiceData();
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", `Invoice_${data.invoiceNo || 'Draft'}.json`);
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
+
+        // Import data from JSON file
+        function handleImportJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    restoreData(data);
+                    saveData(); // Save immediately after import
+                } catch(err) {
+                    console.error("Failed to parse JSON", err);
+                    alert("Error importing file. Please make sure it is a valid invoice JSON file.");
+                }
+            };
+            reader.readAsText(file);
+            
+            // Clear input so the exact same file can be imported again if needed
+            event.target.value = '';
+        }
+    </script>
+</body>
+</html>
