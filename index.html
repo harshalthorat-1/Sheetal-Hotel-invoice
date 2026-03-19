@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Hotel Invoice</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@700&display=swap');
@@ -32,7 +32,8 @@
 
         /* A4 Container */
         .invoice-container {
-            width: 210mm;
+            width: 100%;
+            max-width: 210mm;
             min-height: 297mm;
             background: #fff;
             padding: 15mm;
@@ -196,23 +197,28 @@
             position: absolute;
             top: 0; right: 0; bottom: 0; left: 0; 
             width: 100%; height: 100%;
-            /* Make the input visible to browsers but transparent visually */
             opacity: 1; 
-            color: transparent; 
+            color: transparent; /* Keep text invisible so it doesn't overlap boxes on desktop */
             background: transparent;
+            caret-color: #000; /* Keep the blinking cursor visible for easy editing! */
             border: none;
             outline: none;
-            caret-color: transparent; /* Hides cursor to avoid weird visual overlap */
             z-index: 10; 
             cursor: text;
             text-transform: uppercase;
         }
 
-        /* Table Structure */
+        /* Table Structure & Responsive Wrapper */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin-bottom: 20px;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
             border: 2px solid var(--border-color);
         }
         th, td {
@@ -363,6 +369,92 @@
         .btn-import { background: #8b5cf6; }
         .btn-clear { background: #ef4444; }
 
+
+        /* MOBILE RESPONSIVE FIXES */
+        @media screen and (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .invoice-container {
+                padding: 15px;
+                min-height: auto;
+            }
+            .hotel-name {
+                font-size: 22px;
+            }
+            .hotel-address {
+                max-width: 100%;
+            }
+            
+            /* Stack Grid Elements */
+            .meta-section, 
+            .customer-section, 
+            .footer {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            .meta-item:last-child {
+                justify-content: flex-start;
+            }
+            .customer-details textarea {
+                height: 80px;
+            }
+            
+            /* -- THE GST FIX FOR MOBILE -- */
+            .gst-section {
+                align-items: flex-start;
+                width: 100%;
+            }
+            .gst-wrapper {
+                width: 100%;
+                margin-top: 5px;
+                display: block;
+            }
+            #gst-display-boxes {
+                display: none !important; /* Hide tiny boxes on mobile */
+            }
+            #real-gst {
+                position: relative; /* Bring back to normal flow */
+                color: #000; /* Make text fully visible */
+                border: 1px solid var(--border-color);
+                padding: 10px;
+                font-size: 16px; /* Prevents annoying iOS zoom */
+                border-radius: 4px;
+                background: #fff;
+                box-sizing: border-box;
+                letter-spacing: 1px;
+            }
+
+            /* Enable Horizontal Swipe for Table */
+            .table-responsive table {
+                min-width: 800px; /* Forces table width so inputs stay usable */
+            }
+
+            /* Adjust Totals Section */
+            .totals-wrapper {
+                justify-content: flex-start;
+            }
+            .totals-table {
+                width: 100%;
+            }
+
+            .footer-right {
+                justify-content: flex-start !important;
+            }
+            .signature-box {
+                align-items: flex-start;
+            }
+
+            /* Scale down action buttons so they don't block the screen */
+            .print-btn-container {
+                bottom: 15px;
+                right: 15px;
+                transform: scale(0.85);
+                transform-origin: bottom right;
+            }
+        }
+
+
         /* FIX PRINT LAYOUT COMPLETELY */
         @media print {
             @page {
@@ -383,6 +475,7 @@
                 border: none; 
                 margin: 0; 
                 padding: 0; 
+                max-width: none;
                 width: 100%;
                 height: auto;
                 page-break-after: avoid; 
@@ -418,7 +511,22 @@
             .meta-item input { border-bottom: 1px solid #000 !important; }
             .customer-details textarea { border-bottom: 1px solid #000 !important; }
             
-            /* Keep table together */
+            /* Ensure boxes show on print regardless of screen size */
+            #gst-display-boxes {
+                display: flex !important;
+            }
+            #real-gst {
+                display: none !important; /* Hide standard input on print completely */
+            }
+
+            /* Keep table together & remove mobile scroll constraints */
+            .table-responsive {
+                overflow-x: visible;
+                margin-bottom: 20px;
+            }
+            .table-responsive table {
+                min-width: auto;
+            }
             table { 
                 border: 2px solid var(--border-color) !important; 
                 width: 100% !important; 
@@ -440,25 +548,6 @@
                 page-break-inside: avoid;
                 page-break-before: avoid;
             }
-            /* REMOVE DATE ICON IN PRINT */
-        @media print {
-
-        input[type="date"] {
-            appearance: none;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-
-            background: none !important;
-            padding-right: 0 !important;
-        }
-
-        /* Hide calendar icon (Chrome, Edge) */
-        input[type="date"]::-webkit-calendar-picker-indicator {
-            display: none !important;
-            -webkit-appearance: none;
-        }
-
-        }
 
             /* Ensure colors print correctly */
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
@@ -526,7 +615,7 @@
                 <textarea placeholder="Enter Customer Name and Address..."></textarea>
             </div>
             <div class="gst-section">
-                <span class="bold" style="align-self: flex-end;">Customer GSTIN:</span>
+                <span class="bold" style="align-self: flex-start;">Customer GSTIN:</span>
                 <div class="gst-wrapper">
                     <!-- 15 spans for GST styling -->
                     <div id="gst-display-boxes" style="display: flex; gap: 2px;">
@@ -536,31 +625,33 @@
                         <span class="gst-box"></span><span class="gst-box"></span><span class="gst-box"></span>
                         <span class="gst-box"></span><span class="gst-box"></span><span class="gst-box"></span>
                     </div>
-                    <!-- Fully visible transparent input to properly handle selection/cursor -->
-                    <input type="text" id="real-gst" maxlength="15" autocomplete="off">
+                    <!-- Transparent overlay input for desktop, standard input for mobile -->
+                    <input type="text" id="real-gst" maxlength="15" autocomplete="off" placeholder="Enter GSTIN">
                 </div>
             </div>
         </div>
 
         <!-- Items Table -->
-        <table id="invoice-table">
-            <thead>
-                <tr>
-                    <th class="col-sr text-center">#</th>
-                    <th class="col-checkin text-center">Check-In<br>
-                    <th class="col-checkout text-center">Check-Out<br>
-                    <th class="col-days text-center">Days</th>
-                    <th class="col-room text-center">Room<br>No.</th>
-                    <th class="col-desc text-left">Particulars</th>
-                    <th class="col-rate text-center">Rate/Day<br><small>(Rs.)</small></th>
-                    <th class="col-amt text-center">Amount<br><small>(Rs.)</small></th>
-                    <th class="col-action no-print"></th>
-                </tr>
-            </thead>
-            <tbody id="items-tbody">
-                <!-- Rows injected via JS -->
-            </tbody>
-        </table>
+        <div class="table-responsive">
+            <table id="invoice-table">
+                <thead>
+                    <tr>
+                        <th class="col-sr text-center">#</th>
+                        <th class="col-checkin text-center">Check-In<br><small>(dd/mm/yyyy)</small></th>
+                        <th class="col-checkout text-center">Check-Out<br><small>(dd/mm/yyyy)</small></th>
+                        <th class="col-days text-center">Days</th>
+                        <th class="col-room text-center">Room<br>No.</th>
+                        <th class="col-desc text-left">Particulars / Description</th>
+                        <th class="col-rate text-center">Rate/Day<br><small>(Rs.)</small></th>
+                        <th class="col-amt text-center">Amount<br><small>(Rs.)</small></th>
+                        <th class="col-action no-print"></th>
+                    </tr>
+                </thead>
+                <tbody id="items-tbody">
+                    <!-- Rows injected via JS -->
+                </tbody>
+            </table>
+        </div>
 
         <!-- Add Row Button -->
         <div class="action-row no-print">
