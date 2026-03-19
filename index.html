@@ -548,6 +548,25 @@
                 page-break-inside: avoid;
                 page-break-before: avoid;
             }
+                        /* REMOVE DATE ICON IN PRINT */
+            
+            
+              input[type="date"] {
+                appearance: none;
+                -webkit-appearance: none;
+                -moz-appearance: none;
+            
+                background: none !important;
+                padding-right: 0 !important;
+              }
+            
+              /* Hide calendar icon (Chrome, Edge) */
+              input[type="date"]::-webkit-calendar-picker-indicator {
+                display: none !important;
+                -webkit-appearance: none;
+              }
+            
+            }
 
             /* Ensure colors print correctly */
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
