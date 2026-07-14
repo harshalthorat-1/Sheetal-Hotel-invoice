@@ -419,12 +419,95 @@
             .print-btn-container { bottom: 10px; right: 10px; scale: 0.9; }
         }
 
-        /* SHADOW PRINT SWITCH CONTROLS (Toggled during Captures/Prints) */
+        /* SHADOW PRINT SWITCH CONTROLS (Enforced standard A4 proportions on mobile PDF outputs) */
         @media print {
             @page { size: A4; margin: 10mm; }
             html, body { background: #fff; padding: 0; margin: 0; min-height: auto; display: block; }
-            .invoice-container { box-shadow: none; border: none; margin: 0; padding: 0; width: 100%; height: auto; }
             
+            .invoice-container { 
+                box-shadow: none !important; 
+                border: none !important; 
+                margin: 0 !important; 
+                padding: 0 !important; 
+                width: 100% !important; 
+                max-width: none !important;
+                height: auto !important; 
+            }
+            
+            /* Rigid A4 Desktop grid layouts override to bypass narrow layout stacking */
+            .meta-section {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr !important;
+                margin-bottom: 20px !important;
+            }
+            .customer-section {
+                display: grid !important;
+                grid-template-columns: 1.2fr 0.8fr !important;
+                gap: 30px !important;
+                padding: 15px !important;
+                border: 1px solid var(--border-color) !important;
+            }
+            .gst-section {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: flex-end !important;
+            }
+            .gst-wrapper {
+                display: flex !important;
+                gap: 2px !important;
+            }
+            #gst-display-boxes {
+                display: flex !important;
+                gap: 2px !important;
+            }
+            #real-gst {
+                display: none !important;
+            }
+            .table-responsive {
+                overflow-x: visible !important;
+            }
+            .table-responsive table {
+                min-width: auto !important;
+                width: 100% !important;
+            }
+            .totals-wrapper {
+                display: flex !important;
+                justify-content: flex-end !important;
+            }
+            .totals-table {
+                width: 350px !important;
+                background: #fafafa !important;
+                border: 2px solid var(--border-color) !important;
+            }
+            .totals-table td {
+                padding: 8px 12px !important;
+            }
+            .totals-table tr.grand-total-row td {
+                background: #f3f4f6 !important;
+            }
+            .footer {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr !important;
+                gap: 40px !important;
+                margin-top: 30px !important;
+                padding-top: 20px !important;
+                border-top: 2px solid var(--border-color) !important;
+                page-break-inside: avoid !important;
+            }
+            .footer-right {
+                display: flex !important;
+                justify-content: flex-end !important;
+            }
+            .signature-box {
+                align-items: center !important;
+            }
+            .footer-left .signature-box {
+                align-items: flex-start !important;
+            }
+            .hotel-name {
+                font-size: 28px !important;
+            }
+
             .no-print { display: none !important; }
             .print-only { display: block !important; }
             span.print-only { display: inline-block !important; }
@@ -434,21 +517,103 @@
             .header-top { display: flex !important; justify-content: flex-end; align-items: center; margin-bottom: 5px; }
             .print-invoice-label { display: block !important; font-weight: bold; font-size: 14px; }
             
-            #gst-display-boxes { display: flex !important; }
-            #real-gst { display: none !important; }
-            .table-responsive { overflow-x: visible; }
-            table, .totals-table { border: 2px solid #000 !important; }
-            th, td { border: 1px solid #000 !important; }
-            th { background-color: #000 !important; color: #fff !important; }
-            .footer { margin-top: 30px !important; page-break-inside: avoid; }
+            input, textarea { border: none !important; background: transparent !important; padding: 0 !important; }
+            .meta-item input { border-bottom: 1px solid #000 !important; }
+            .customer-details textarea { border-bottom: 1px solid #000 !important; }
+            
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         }
 
-        /* Screen capture class wrapper to emulate media print swap styling losslessly */
+        /* Screen capture class wrapper to force desktop style calculations natively during exports */
         body.capturing .no-print { display: none !important; }
         body.capturing .print-only { display: block !important; }
         body.capturing span.print-only { display: inline-block !important; }
         body.capturing td.print-only { display: table-cell !important; }
+
+        body.capturing {
+            background-color: #fff !important;
+        }
+        body.capturing .invoice-container {
+            width: 210mm !important;
+            max-width: none !important;
+            min-height: 297mm !important;
+            padding: 15mm !important;
+            box-shadow: none !important;
+            border: 1px solid var(--border-color) !important;
+            box-sizing: border-box !important;
+            background: #fff !important;
+        }
+        body.capturing .meta-section {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            margin-bottom: 20px !important;
+        }
+        body.capturing .customer-section {
+            display: grid !important;
+            grid-template-columns: 1.2fr 0.8fr !important;
+            gap: 30px !important;
+            padding: 15px !important;
+            border: 1px solid var(--border-color) !important;
+        }
+        body.capturing .gst-section {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: flex-end !important;
+        }
+        body.capturing .gst-wrapper {
+            display: flex !important;
+            gap: 2px !important;
+        }
+        body.capturing #gst-display-boxes {
+            display: flex !important;
+            gap: 2px !important;
+        }
+        body.capturing #real-gst {
+            display: none !important;
+        }
+        body.capturing .table-responsive {
+            overflow-x: visible !important;
+        }
+        body.capturing .table-responsive table {
+            min-width: auto !important;
+            width: 100% !important;
+        }
+        body.capturing .totals-wrapper {
+            display: flex !important;
+            justify-content: flex-end !important;
+        }
+        body.capturing .totals-table {
+            width: 350px !important;
+            background: #fafafa !important;
+            border: 2px solid var(--border-color) !important;
+        }
+        body.capturing .totals-table td {
+            padding: 8px 12px !important;
+        }
+        body.capturing .totals-table tr.grand-total-row td {
+            background: #f3f4f6 !important;
+        }
+        body.capturing .footer {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 40px !important;
+            margin-top: 30px !important;
+            padding-top: 20px !important;
+            border-top: 2px solid var(--border-color) !important;
+        }
+        body.capturing .footer-right {
+            display: flex !important;
+            justify-content: flex-end !important;
+        }
+        body.capturing .signature-box {
+            align-items: center !important;
+        }
+        body.capturing .footer-left .signature-box {
+            align-items: flex-start !important;
+        }
+        body.capturing .hotel-name {
+            font-size: 28px !important;
+        }
     </style>
 </head>
 <body>
@@ -468,7 +633,7 @@
         </button>
 
         <button class="action-btn btn-share" onclick="shareInvoiceLink()">
-            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8.684 10.742l4.632-2.483m0 0a3 3 0 104.364-3.518 3 3 0 00-4.364 3.518zm-4.632 2.483a3 3 0 11-4.364 3.518 3 3 0 014.364-3.518zm4.632-2.483a3 3 0 00-.38-.961l-4.252 2.28"/></svg>
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8.684 10.742l4.632-2.483m0 0a3 3 0 104.364-3.518 3 3 0 00-4.364 3.518zm-4.632 2.483a3 3 0 11-4.364 3.518 3 0 014.364-3.518zm4.632-2.483a3 3 0 00-.38-.961l-4.252 2.28"/></svg>
             Share Bill Link
         </button>
 
@@ -1007,11 +1172,14 @@
             const rawCustName = document.getElementById('customer-name').innerText.trim().split('\n')[0];
             const customerSanitized = rawCustName.replace(/[^a-z0-9]/gi, '_').toLowerCase().substring(0, 20);
 
+            // Configure standard desktop render widths to bypass native mobile viewport compression
             const opt = {
                 scale: 2.2, // Enhanced high quality vector scaling rendering
                 useCORS: true,
                 logging: false,
-                backgroundColor: '#ffffff'
+                backgroundColor: '#ffffff',
+                windowWidth: 1024,   // Emulate full laptop resolution width
+                windowHeight: 1448   // Emulate corresponding height scale ratio
             };
 
             // Capture and download PNG output directly to local system downloads
